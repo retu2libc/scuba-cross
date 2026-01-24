@@ -1,15 +1,15 @@
 import logging
 import os
 from pathlib import Path
-import pytest
+from textwrap import dedent
 from typing import Optional
 from unittest import mock
 
-from .utils import assert_paths_equal, assert_vol
-
+import pytest
 import scuba.config
 from scuba.config import ScubaVolume
 
+from .utils import assert_paths_equal, assert_vol
 
 SCUBA_YML = Path(".scuba.yml")
 GITLAB_YML = Path(".gitlab.yml")
@@ -259,6 +259,93 @@ class TestLoadConfig(ConfigTest):
         """load_config raises ConfigError when !from_yaml has missing args"""
         GITLAB_YML.write_text("image: dummian:8.2")
         invalid_config(config_text=f"image: !from_yaml {GITLAB_YML}")
+
+    def test_load_config_image_from_yaml_multiple_docs_first(self) -> None:
+        GITLAB_YML.write_text(
+            dedent(
+                """
+            image: dummian:8.2
+            ---
+            .its:
+              nowhere.down:
+                here: value
+            """
+            )
+        )
+        config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
+        assert config.image == "dummian:8.2"
+
+    def test_load_config_image_from_yaml_multiple_docs_second(self) -> None:
+        GITLAB_YML.write_text(
+            dedent(
+                """
+            .its:
+              nowhere.down:
+                here: value
+            ---
+            image: dummian:8.2
+            """
+            )
+        )
+        config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
+        assert config.image == "dummian:8.2"
+
+    def test_load_config_image_from_yaml_multiple_docs_duplicate_top_keys(self) -> None:
+        GITLAB_YML.write_text(
+            dedent(
+                """
+            image: invalid:8.2
+            ---
+            image: dummian:8.2
+            """
+            )
+        )
+        invalid_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
+
+    def test_load_config_image_from_yaml_multiple_docs_empty_first_doc(self) -> None:
+        GITLAB_YML.write_text(
+            dedent(
+                """
+            ---
+            image: dummian:8.2
+            """
+            )
+        )
+        config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
+        assert config.image == "dummian:8.2"
+
+    def test_load_config_image_from_yaml_multiple_docs_empty_second_doc(self) -> None:
+        GITLAB_YML.write_text(
+            dedent(
+                """
+            image: dummian:8.2
+            ---
+            """
+            )
+        )
+        config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
+        assert config.image == "dummian:8.2"
+
+    def test_load_config_image_from_yaml_multiple_docs_random_docs(self) -> None:
+        GITLAB_YML.write_text(
+            dedent(
+                """
+            ---
+            thing
+            ---
+            5
+            ---
+            image: dummian:8.2
+            ---
+            ---
+            {}
+            ---
+            ---
+            """
+            )
+        )
+        config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
+        assert config.image == "dummian:8.2"
 
     def __test_load_config_safe(self, bad_yaml_path: Path) -> None:
         bad_yaml_path.write_text(
