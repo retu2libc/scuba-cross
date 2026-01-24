@@ -59,7 +59,7 @@ class OverrideStr(str, OverrideMixin):
 # http://stackoverflow.com/a/9577670
 class Loader(yaml.SafeLoader):
     _root: Path  # directory containing the loaded document
-    _cache: dict[Path, Any]  # document path => document
+    _cache: dict[Path, list[Any]]  # doc path => list of YAML documents from that file
 
     def __init__(self, stream: TextIO):
         if not hasattr(self, "_root"):
@@ -109,20 +109,39 @@ class Loader(yaml.SafeLoader):
         path = self._root / filename
 
         # Load the other YAML document
-        doc = self._cache.get(path)
-        if not doc:
+        docs = self._cache.get(path)
+        if not docs:
             with path.open("r") as f:
-                doc = yaml.load(f, self.__class__)
-                self._cache[path] = doc
+                docs = list(yaml.load_all(f, self.__class__))
+                self._cache[path] = docs
 
         # Retrieve the key
         try:
-            cur = doc
             # Use a negative look-behind to split the key on non-escaped '.' characters
-            for k in re.split(r"(?<!\\)\.", key):
-                cur = cur[
-                    k.replace("\\.", ".")
-                ]  # Be sure to replace any escaped '.' characters with *just* the '.'
+            # Be sure to replace any escaped '.' characters with *just* the '.'
+            top_key, *keys = [
+                key.replace("\\.", ".") for key in re.split(r"(?<!\\)\.", key)
+            ]
+
+            # Ensure the top key is unique between all documents
+            found_top = [
+                (i, doc[top_key])
+                for i, doc in enumerate(docs, start=1)
+                if isinstance(doc, dict) and top_key in doc
+            ]
+            if not found_top:
+                raise KeyError
+            elif len(found_top) > 1:
+                matching_docs = ", ".join([str(found[0]) for found in found_top])
+                raise yaml.YAMLError(
+                    f"Key {key!r} found multiple times in {filename} in documents {matching_docs}"
+                )
+            else:
+                cur = found_top[0][1]
+
+            # Now find it
+            for k in keys:
+                cur = cur[k]
         except KeyError:
             raise yaml.YAMLError(f"Key {key!r} not found in {filename}")
         return cur
