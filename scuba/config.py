@@ -1,17 +1,17 @@
 from __future__ import annotations
+
 import dataclasses
 import os
-from pathlib import Path
 import re
 import shlex
-from typing import Any, Optional, TextIO, TypeVar, Union
-from typing import overload
+from pathlib import Path
+from typing import Any, Optional, TextIO, TypeVar, Union, overload
 
 import yaml
 import yaml.nodes
 
-from .constants import DEFAULT_SHELL, SCUBA_YML
 from . import utils
+from .constants import DEFAULT_SHELL, SCUBA_YML
 from .dockerutil import make_vol_opt
 
 CfgNode = Any
