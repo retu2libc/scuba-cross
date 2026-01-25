@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Fixed `!from_yaml` not handling multi-document YAML files (#277) (@brxnnan)
+
+
 ## [2.14.1] - 2025-07-26
 ### Fixed
 - Fixed umask being set incorrectly in the container (#274) (@haboustak)
