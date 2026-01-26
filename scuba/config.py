@@ -348,13 +348,11 @@ def _get_typed_val(
 
 
 @overload  # When default is None, can return None.
-def _get_str(data: CfgData, key: str, default: None = None) -> str | None:
-    ...
+def _get_str(data: CfgData, key: str, default: None = None) -> str | None: ...
 
 
 @overload  # When default is non-None, cannot return None.
-def _get_str(data: CfgData, key: str, default: str) -> str:
-    ...
+def _get_str(data: CfgData, key: str, default: str) -> str: ...
 
 
 def _get_str(data: CfgData, key: str, default: str | None = None) -> str | None:

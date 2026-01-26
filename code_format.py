@@ -8,6 +8,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).parent.resolve()
 SCUBAINIT_DIR = PROJECT_DIR / "scubainit"
 PYTHON_CODE = (
+    "docs",
     "scuba",
     "tests",
     "*.py",

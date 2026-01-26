@@ -127,12 +127,10 @@ class TestLoadConfig(ConfigTest):
 
     def test_load_unexpected_node(self) -> None:
         """load_config raises ConfigError on unexpected config node"""
-        invalid_config(
-            config_text="""
+        invalid_config(config_text="""
             image: bosybux
             unexpected_node_123456: value
-            """
-        )
+            """)
 
     def test_load_config_minimal(self) -> None:
         """load_config loads a minimal config"""
@@ -141,14 +139,12 @@ class TestLoadConfig(ConfigTest):
 
     def test_load_config_with_aliases(self) -> None:
         """load_config loads a config with aliases"""
-        config = load_config(
-            config_text="""
+        config = load_config(config_text="""
             image: bosybux
             aliases:
               foo: bar
               snap: crackle pop
-            """
-        )
+            """)
         assert config.image == "bosybux"
         assert len(config.aliases) == 2
         assert config.aliases["foo"].script == ["bar"]
@@ -156,13 +152,11 @@ class TestLoadConfig(ConfigTest):
 
     def test_load_config__no_spaces_in_aliases(self) -> None:
         """load_config refuses spaces in aliases"""
-        invalid_config(
-            config_text="""
+        invalid_config(config_text="""
             image: bosybux
             aliases:
               this has spaces: whatever
-            """
-        )
+            """)
 
     def test_load_config_image_from_yaml(self) -> None:
         """load_config loads a config using !from_yaml"""
@@ -172,13 +166,11 @@ class TestLoadConfig(ConfigTest):
 
     def test_load_config_image_from_yaml_nested_keys(self) -> None:
         """load_config loads a config using !from_yaml with nested keys"""
-        GITLAB_YML.write_text(
-            """
+        GITLAB_YML.write_text("""
             somewhere:
               down:
                 here: dummian:8.2
-            """
-        )
+            """)
         config = load_config(
             config_text=f"image: !from_yaml {GITLAB_YML} somewhere.down.here"
         )
@@ -188,13 +180,11 @@ class TestLoadConfig(ConfigTest):
         self,
     ) -> None:
         """load_config loads a config using !from_yaml with nested keys containing escaped '.' characters"""
-        GITLAB_YML.write_text(
-            """
+        GITLAB_YML.write_text("""
             .its:
               somewhere.down:
                 here: dummian:8.2
-            """
-        )
+            """)
         config = load_config(
             config_text=f'image: !from_yaml {GITLAB_YML} "\\.its.somewhere\\.down.here"\n'
         )
@@ -202,15 +192,12 @@ class TestLoadConfig(ConfigTest):
 
     def test_load_config_from_yaml_cached_file(self) -> None:
         """load_config loads a config using !from_yaml from cached version"""
-        GITLAB_YML.write_text(
-            """
+        GITLAB_YML.write_text("""
             one: dummian:8.2
             two: dummian:9.3
             three: dummian:10.1
-            """
-        )
-        SCUBA_YML.write_text(
-            f"""
+            """)
+        SCUBA_YML.write_text(f"""
             image: !from_yaml {GITLAB_YML} one
             aliases:
               two:
@@ -219,8 +206,7 @@ class TestLoadConfig(ConfigTest):
               three:
                 image:  !from_yaml {GITLAB_YML} three
                 script: ugh
-            """
-        )
+            """)
 
         with mock.patch.object(Path, "open", autospec=True, side_effect=Path.open) as m:
             # Write config separately so its open() call is not counted here.
@@ -234,12 +220,10 @@ class TestLoadConfig(ConfigTest):
 
     def test_load_config_image_from_yaml_nested_key_missing(self) -> None:
         """load_config raises ConfigError when !from_yaml references nonexistant key"""
-        GITLAB_YML.write_text(
-            """
+        GITLAB_YML.write_text("""
             somewhere:
               down:
-            """
-        )
+            """)
         invalid_config(
             config_text=f"image: !from_yaml {GITLAB_YML} somewhere.NONEXISTANT"
         )
@@ -260,75 +244,53 @@ class TestLoadConfig(ConfigTest):
         invalid_config(config_text=f"image: !from_yaml {GITLAB_YML}")
 
     def test_load_config_image_from_yaml_multiple_docs_first(self) -> None:
-        GITLAB_YML.write_text(
-            dedent(
-                """
+        GITLAB_YML.write_text(dedent("""
             image: dummian:8.2
             ---
             .its:
               nowhere.down:
                 here: value
-            """
-            )
-        )
+            """))
         config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
         assert config.image == "dummian:8.2"
 
     def test_load_config_image_from_yaml_multiple_docs_second(self) -> None:
-        GITLAB_YML.write_text(
-            dedent(
-                """
+        GITLAB_YML.write_text(dedent("""
             .its:
               nowhere.down:
                 here: value
             ---
             image: dummian:8.2
-            """
-            )
-        )
+            """))
         config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
         assert config.image == "dummian:8.2"
 
     def test_load_config_image_from_yaml_multiple_docs_duplicate_top_keys(self) -> None:
-        GITLAB_YML.write_text(
-            dedent(
-                """
+        GITLAB_YML.write_text(dedent("""
             image: invalid:8.2
             ---
             image: dummian:8.2
-            """
-            )
-        )
+            """))
         invalid_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
 
     def test_load_config_image_from_yaml_multiple_docs_empty_first_doc(self) -> None:
-        GITLAB_YML.write_text(
-            dedent(
-                """
+        GITLAB_YML.write_text(dedent("""
             ---
             image: dummian:8.2
-            """
-            )
-        )
+            """))
         config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
         assert config.image == "dummian:8.2"
 
     def test_load_config_image_from_yaml_multiple_docs_empty_second_doc(self) -> None:
-        GITLAB_YML.write_text(
-            dedent(
-                """
+        GITLAB_YML.write_text(dedent("""
             image: dummian:8.2
             ---
-            """
-            )
-        )
+            """))
         config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
         assert config.image == "dummian:8.2"
 
     def test_load_config_image_from_yaml_multiple_docs_random_docs(self) -> None:
-        GITLAB_YML.write_text(
-            dedent(
-                """
+        GITLAB_YML.write_text(dedent("""
             ---
             thing
             ---
@@ -340,20 +302,16 @@ class TestLoadConfig(ConfigTest):
             {}
             ---
             ---
-            """
-            )
-        )
+            """))
         config = load_config(config_text=f"image: !from_yaml {GITLAB_YML} image")
         assert config.image == "dummian:8.2"
 
     def __test_load_config_safe(self, bad_yaml_path: Path) -> None:
-        bad_yaml_path.write_text(
-            """
+        bad_yaml_path.write_text("""
             danger:
               - !!python/object/apply:print [Danger]
               - !!python/object/apply:sys.exit [66]
-            """
-        )
+            """)
         pat = "could not determine a constructor for the tag.*python/object/apply"
         with pytest.raises(scuba.config.ConfigError, match=pat) as ctx:
             load_config()
@@ -372,8 +330,7 @@ class TestLoadConfig(ConfigTest):
 class TestConfigHooks(ConfigTest):
     def test_hooks_mixed(self) -> None:
         """hooks of mixed forms are valid"""
-        config = load_config(
-            config_text="""
+        config = load_config(config_text="""
             image: na
             hooks:
               root:
@@ -381,8 +338,7 @@ class TestConfigHooks(ConfigTest):
                   - echo "This runs before we switch users"
                   - id
               user: id
-            """
-        )
+            """)
         assert config.hooks.get("root") == [
             'echo "This runs before we switch users"',
             "id",
@@ -391,26 +347,22 @@ class TestConfigHooks(ConfigTest):
 
     def test_hooks_invalid_list(self) -> None:
         """hooks with list not under "script" key are invalid"""
-        invalid_config(
-            config_text="""
+        invalid_config(config_text="""
             image: na
             hooks:
               user:
                 - this list should be under
                 - a 'script'
-            """
-        )
+            """)
 
     def test_hooks_missing_script(self) -> None:
         """hooks with dict, but missing "script" are invalid"""
-        invalid_config(
-            config_text="""
+        invalid_config(config_text="""
             image: na
             hooks:
               user:
                 not_script: missing "script" key
-            """
-        )
+            """)
 
 
 class TestConfigEnv(ConfigTest):
@@ -428,8 +380,7 @@ class TestConfigEnv(ConfigTest):
         """Top-level environment can be loaded (dict)"""
         monkeypatch.setenv("EXTERNAL", "Outside world")
         monkeypatch.delenv("EXTERNAL_NOTSET", raising=False)
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             environment:
               FOO: This is foo
@@ -441,8 +392,7 @@ class TestConfigEnv(ConfigTest):
               EMPTY: ""
               EXTERNAL:             # Comes from os env
               EXTERNAL_NOTSET:      # Missing in os env
-            """
-        )
+            """)
         expect = dict(
             FOO="This is foo",
             FOO_WITH_QUOTES='"Quoted foo"',
@@ -460,8 +410,7 @@ class TestConfigEnv(ConfigTest):
         """Top-level environment can be loaded (list)"""
         monkeypatch.setenv("EXTERNAL", "Outside world")
         monkeypatch.delenv("EXTERNAL_NOTSET", raising=False)
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             environment:
               - FOO=This is foo                 # No quotes
@@ -472,8 +421,7 @@ class TestConfigEnv(ConfigTest):
               - EMPTY=
               - EXTERNAL                        # Comes from os env
               - EXTERNAL_NOTSET                 # Missing in os env
-            """
-        )
+            """)
         expect = dict(
             FOO="This is foo",
             FOO_WITH_QUOTES='"Quoted foo"',
@@ -488,8 +436,7 @@ class TestConfigEnv(ConfigTest):
 
     def test_env_alias(self) -> None:
         """Alias can have environment"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             aliases:
               al:
@@ -497,8 +444,7 @@ class TestConfigEnv(ConfigTest):
                 environment:
                   FOO: Overridden
                   MORE: Hello world
-            """
-        )
+            """)
         assert config.aliases["al"].environment == dict(
             FOO="Overridden",
             MORE="Hello world",
@@ -513,12 +459,10 @@ class TestConfigEntrypoint(ConfigTest):
 
     def test_entrypoint_null(self) -> None:
         """Entrypoint can be set to null"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             entrypoint:
-            """
-        )
+            """)
         assert config.entrypoint == ""  # Null => empty string
 
     def test_entrypoint_invalid(self) -> None:
@@ -533,28 +477,23 @@ class TestConfigEntrypoint(ConfigTest):
 
     def test_entrypoint_empty_string(self) -> None:
         """Entrypoint can be set to an empty string"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             entrypoint: ""
-            """
-        )
+            """)
         assert config.entrypoint == ""
 
     def test_entrypoint_set(self) -> None:
         """Entrypoint can be set"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             entrypoint: my_ep
-            """
-        )
+            """)
         assert config.entrypoint == "my_ep"
 
     def test_alias_entrypoint_null(self) -> None:
         """Entrypoint can be set to null via alias"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             entrypoint: na_ep
             aliases:
@@ -562,14 +501,12 @@ class TestConfigEntrypoint(ConfigTest):
                 entrypoint:
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].entrypoint == ""  # Null => empty string
 
     def test_alias_entrypoint_empty_string(self) -> None:
         """Entrypoint can be set to an empty string via alias"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             entrypoint: na_ep
             aliases:
@@ -577,14 +514,12 @@ class TestConfigEntrypoint(ConfigTest):
                 entrypoint: ""
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].entrypoint == ""
 
     def test_alias_entrypoint(self) -> None:
         """Entrypoint can be set via alias"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             entrypoint: na_ep
             aliases:
@@ -592,8 +527,7 @@ class TestConfigEntrypoint(ConfigTest):
                 entrypoint: use_this_ep
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].entrypoint == "use_this_ep"
 
 
@@ -615,48 +549,39 @@ class TestConfigDockerArgs(ConfigTest):
 
     def test_docker_args_null(self) -> None:
         """docker_args can be set to null"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args:
-            """
-        )
+            """)
         assert config.docker_args == []
 
     def test_docker_args_set_empty_string(self) -> None:
         """docker_args can be set to empty string"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args: ''
-            """
-        )
+            """)
         assert config.docker_args == []  # '' -> [] after shlex.split()
 
     def test_docker_args_set(self) -> None:
         """docker_args can be set"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args: --privileged
-            """
-        )
+            """)
         assert config.docker_args == ["--privileged"]
 
     def test_docker_args_set_multi(self) -> None:
         """docker_args can be set to multiple args"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args: --privileged -v /tmp/:/tmp/
-            """
-        )
+            """)
         assert config.docker_args == ["--privileged", "-v", "/tmp/:/tmp/"]
 
     def test_alias_docker_args_null(self) -> None:
         """docker_args can be set to null via alias"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args: --privileged
             aliases:
@@ -664,14 +589,12 @@ class TestConfigDockerArgs(ConfigTest):
                 docker_args:
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].docker_args == []
 
     def test_alias_docker_args_empty_string(self) -> None:
         """docker_args can be set to empty string via alias"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args: --privileged
             aliases:
@@ -679,14 +602,12 @@ class TestConfigDockerArgs(ConfigTest):
                 docker_args: ''
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].docker_args == []
 
     def test_alias_docker_args_set(self) -> None:
         """docker_args can be set via alias"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args: --privileged
             aliases:
@@ -694,14 +615,12 @@ class TestConfigDockerArgs(ConfigTest):
                 docker_args: -v /tmp/:/tmp/
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].docker_args == ["-v", "/tmp/:/tmp/"]
 
     def test_alias_docker_args_override(self) -> None:
         """docker_args can be tagged for override"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args: --privileged
             aliases:
@@ -709,8 +628,7 @@ class TestConfigDockerArgs(ConfigTest):
                 docker_args: !override -v /tmp/:/tmp/
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].docker_args == ["-v", "/tmp/:/tmp/"]
         assert isinstance(
             config.aliases["testalias"].docker_args, scuba.config.OverrideMixin
@@ -718,8 +636,7 @@ class TestConfigDockerArgs(ConfigTest):
 
     def test_alias_docker_args_override_implicit_null(self) -> None:
         """docker_args can be overridden with an implicit null value"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             docker_args: --privileged
             aliases:
@@ -727,8 +644,7 @@ class TestConfigDockerArgs(ConfigTest):
                 docker_args: !override
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].docker_args == []
         assert isinstance(
             config.aliases["testalias"].docker_args, scuba.config.OverrideMixin
@@ -739,8 +655,7 @@ class TestConfigDockerArgs(ConfigTest):
         args_yml = Path("args.yml")
         args_yml.write_text("args: -v /tmp/:/tmp/")
 
-        config = load_config(
-            config_text=rf"""
+        config = load_config(config_text=rf"""
             image: na
             docker_args: --privileged
             aliases:
@@ -748,8 +663,7 @@ class TestConfigDockerArgs(ConfigTest):
                 docker_args: !override '!from_yaml {args_yml} args'
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].docker_args == ["-v", "/tmp/:/tmp/"]
         assert isinstance(
             config.aliases["testalias"].docker_args, scuba.config.OverrideMixin
@@ -760,8 +674,7 @@ class TestConfigDockerArgs(ConfigTest):
         args_yml = Path("args.yml")
         args_yml.write_text("args: !override -v /tmp/:/tmp/")
 
-        config = load_config(
-            config_text=rf"""
+        config = load_config(config_text=rf"""
             image: na
             docker_args: --privileged
             aliases:
@@ -769,8 +682,7 @@ class TestConfigDockerArgs(ConfigTest):
                 docker_args: !from_yaml {args_yml} args
                 script:
                   - ugh
-            """
-        )
+            """)
         assert config.aliases["testalias"].docker_args == ["-v", "/tmp/:/tmp/"]
         assert isinstance(
             config.aliases["testalias"].docker_args, scuba.config.OverrideMixin
@@ -785,12 +697,10 @@ class TestConfigVolumes(ConfigTest):
 
     def test_null(self) -> None:
         """volumes can be set to null"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
-            """
-        )
+            """)
         assert config.volumes == None
 
     def test_invalid_int(self) -> None:
@@ -844,13 +754,11 @@ class TestConfigVolumes(ConfigTest):
 
     def test_simple_bind(self) -> None:
         """volumes can be set using the simple form"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               /cpath: /hpath
-            """
-        )
+            """)
         assert config.volumes is not None
         assert len(config.volumes) == 1
 
@@ -858,8 +766,7 @@ class TestConfigVolumes(ConfigTest):
 
     def test_complex_bind(self) -> None:
         """volumes can be set using the complex form"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               /foo: /host/foo
@@ -868,8 +775,7 @@ class TestConfigVolumes(ConfigTest):
               /snap:
                 hostpath: /host/snap
                 options: z,ro
-            """
-        )
+            """)
         vols = config.volumes
         assert vols is not None
         assert len(vols) == 3
@@ -880,14 +786,12 @@ class TestConfigVolumes(ConfigTest):
 
     def test_complex_named_volume(self) -> None:
         """volumes complex form can specify a named volume"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               /foo:
                 name: foo-volume
-            """
-        )
+            """)
         assert config.volumes is not None
         assert len(config.volumes) == 1
         vol = config.volumes[Path("/foo")]
@@ -898,8 +802,7 @@ class TestConfigVolumes(ConfigTest):
 
     def test_via_alias(self) -> None:
         """volumes can be set via alias"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             aliases:
               testalias:
@@ -910,8 +813,7 @@ class TestConfigVolumes(ConfigTest):
                   /bar:
                     hostpath: /host/bar
                     options: z,ro
-            """
-        )
+            """)
         vols = config.aliases["testalias"].volumes
         assert vols is not None
         assert len(vols) == 2
@@ -923,13 +825,11 @@ class TestConfigVolumes(ConfigTest):
         """volume definitions can contain environment variables"""
         monkeypatch.setenv("TEST_VOL_PATH", "/bar/baz")
         monkeypatch.setenv("TEST_VOL_PATH2", "/moo/doo")
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               $TEST_VOL_PATH/foo: ${TEST_VOL_PATH2}/foo
-            """
-        )
+            """)
         vols = config.volumes
         assert vols is not None
         assert len(vols) == 1
@@ -942,8 +842,7 @@ class TestConfigVolumes(ConfigTest):
         monkeypatch.setenv("TEST_TMP", "/tmp")
         monkeypatch.setenv("TEST_MAIL", "/var/spool/mail/testuser")
 
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               $TEST_HOME/.config: ${TEST_HOME}/.config
@@ -952,8 +851,7 @@ class TestConfigVolumes(ConfigTest):
               /var/spool/mail/container:
                 hostpath: $TEST_MAIL
                 options: z,ro
-            """
-        )
+            """)
         vols = config.volumes
         assert vols is not None
         assert len(vols) == 3
@@ -983,16 +881,14 @@ class TestConfigVolumes(ConfigTest):
         """volume hostpath can be relative to scuba_root (top dir)"""
         monkeypatch.setenv("RELVAR", "./spam/eggs")
 
-        SCUBA_YML.write_text(
-            r"""
+        SCUBA_YML.write_text(r"""
             image: na
             volumes:
               /bar: ./foo/bar       # simple form, dotted path
               /scp:                 # complex form
                 hostpath: ./snap/crackle/pop
               /relvar: $RELVAR      # simple form, relative path in variable
-            """
-        )
+            """)
 
         # Make a subdirectory and cd into it
         subdir = Path("way/down/here")
@@ -1028,13 +924,11 @@ class TestConfigVolumes(ConfigTest):
         monkeypatch.chdir(project_dir)
 
         # Now put .scuba.yml here
-        SCUBA_YML.write_text(
-            r"""
+        SCUBA_YML.write_text(r"""
             image: na
             volumes:
               /foo: ../../../foo_up_here
-            """
-        )
+            """)
 
         # Locate the config
         found_topdir, found_rel, config = scuba.config.find_config()
@@ -1061,13 +955,11 @@ class TestConfigVolumes(ConfigTest):
     ) -> None:
         """volume definitions can contain environment variables, including relative path portions"""
         monkeypatch.setenv("PREFIX", "./")
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               /foo: ${PREFIX}/foo
-            """
-        )
+            """)
         vols = config.volumes
         assert vols is not None
         assert len(vols) == 1
@@ -1086,13 +978,11 @@ class TestConfigVolumes(ConfigTest):
 
     def test_simple_named_volume(self) -> None:
         """volumes simple form can specify a named volume"""
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               /foo: foo-volume
-            """
-        )
+            """)
         assert config.volumes is not None
         assert len(config.volumes) == 1
         vol = config.volumes[Path("/foo")]
@@ -1104,13 +994,11 @@ class TestConfigVolumes(ConfigTest):
     def test_simple_named_volume_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """volumes simple form can specify a named volume via env var"""
         monkeypatch.setenv("FOO_VOLUME", "foo-volume")
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               /foo: $FOO_VOLUME
-            """
-        )
+            """)
         assert config.volumes is not None
         assert len(config.volumes) == 1
         vol = config.volumes[Path("/foo")]
@@ -1122,14 +1010,12 @@ class TestConfigVolumes(ConfigTest):
     def test_complex_named_volume_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """volumes complex form can specify a named volume via env var"""
         monkeypatch.setenv("FOO_VOLUME", "foo-volume")
-        config = load_config(
-            config_text=r"""
+        config = load_config(config_text=r"""
             image: na
             volumes:
               /foo:
                 name: $FOO_VOLUME
-            """
-        )
+            """)
         assert config.volumes is not None
         assert len(config.volumes) == 1
         vol = config.volumes[Path("/foo")]
