@@ -7,12 +7,12 @@ import shutil
 import unittest
 import logging
 from pathlib import Path
-from typing import Any, Callable, Sequence, TypeVar, Optional, Union
+from typing import Any, Callable, Sequence, TypeVar, Optional
 from unittest import mock
 
 from scuba.config import ScubaVolume
 
-PathStr = Union[Path, str]
+PathStr = Path | str
 
 _FT = TypeVar("_FT", bound=Callable[..., Any])
 

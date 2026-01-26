@@ -9,7 +9,7 @@ import tempfile
 from grp import getgrgid
 from pathlib import Path
 from pwd import getpwuid
-from typing import cast, Any, Iterable, Optional, Sequence, Union
+from typing import cast, Any, Iterable, Optional, Sequence
 from typing import TextIO
 
 from .config import ScubaConfig, OverrideMixin
@@ -133,7 +133,7 @@ class ScubaDive:
     def is_remote_docker(self) -> bool:
         return "DOCKER_HOST" in os.environ
 
-    def add_env(self, name: str, val: Union[str, int]) -> None:
+    def add_env(self, name: str, val: str | int) -> None:
         """Add an environment variable to the docker run invocation"""
         if name in self.env_vars:
             raise KeyError(name)
@@ -141,8 +141,8 @@ class ScubaDive:
 
     def add_volume(
         self,
-        hostpath: Union[Path, str],
-        contpath: Union[Path, str],
+        hostpath: Path | str,
+        contpath: Path | str,
         options: Optional[list[str]] = None,
     ) -> None:
         """Add a volume (bind-mount) to the docker run invocation"""

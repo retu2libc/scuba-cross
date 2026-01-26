@@ -5,7 +5,7 @@ import os
 import re
 import shlex
 from pathlib import Path
-from typing import Any, Optional, TextIO, TypeVar, Union, overload
+from typing import Any, Optional, TextIO, TypeVar, overload
 
 import yaml
 import yaml.nodes

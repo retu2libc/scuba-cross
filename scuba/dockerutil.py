@@ -1,12 +1,12 @@
 from __future__ import annotations
 import subprocess
 import json
-from typing import Any, IO, Optional, Sequence, Union
+from typing import Any, IO, Optional, Sequence
 from pathlib import Path
 
 # https://github.com/python/typeshed/blob/main/stdlib/subprocess.pyi
-_CMD = Union[str, bytes, Sequence[Union[str, bytes]]]
-_FILE = Union[None, int, IO[Any]]
+_CMD = str | bytes | Sequence[str | bytes]
+_FILE = None | int | IO[Any]
 
 
 class DockerError(Exception):
@@ -132,7 +132,7 @@ def get_image_entrypoint(image: str) -> Optional[Sequence[str]]:
 
 
 def make_vol_opt(
-    hostdir_or_volname: Union[Path, str],
+    hostdir_or_volname: Path | str,
     contdir: Path,
     options: Optional[Sequence[str]] = None,
 ) -> str:
