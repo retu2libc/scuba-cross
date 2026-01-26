@@ -342,9 +342,10 @@ class TestMainUser(MainTest):
     def test_user_run_as_root(self) -> None:
         '''Verify running scuba as root is identical to "scuba -r"'''
 
-        with mock.patch("os.getuid", return_value=0) as getuid_mock, mock.patch(
-            "os.getgid", return_value=0
-        ) as getgid_mock:
+        with (
+            mock.patch("os.getuid", return_value=0) as getuid_mock,
+            mock.patch("os.getgid", return_value=0) as getgid_mock,
+        ):
             self._test_user_expect_root()
             assert getuid_mock.called
             assert getgid_mock.called
