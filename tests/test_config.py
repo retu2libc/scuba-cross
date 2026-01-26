@@ -2,7 +2,6 @@ import logging
 import os
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional
 from unittest import mock
 
 import pytest
@@ -15,7 +14,7 @@ SCUBA_YML = Path(".scuba.yml")
 GITLAB_YML = Path(".gitlab.yml")
 
 
-def load_config(*, config_text: Optional[str] = None) -> scuba.config.ScubaConfig:
+def load_config(*, config_text: str | None = None) -> scuba.config.ScubaConfig:
     if config_text is not None:
         SCUBA_YML.write_text(config_text)
     return scuba.config.load_config(SCUBA_YML, Path.cwd())
@@ -23,8 +22,8 @@ def load_config(*, config_text: Optional[str] = None) -> scuba.config.ScubaConfi
 
 def invalid_config(
     *,
-    config_text: Optional[str] = None,
-    error_match: Optional[str] = None,
+    config_text: str | None = None,
+    error_match: str | None = None,
 ) -> None:
     with pytest.raises(scuba.config.ConfigError, match=error_match) as e:
         load_config(config_text=config_text)

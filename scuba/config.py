@@ -5,7 +5,7 @@ import os
 import re
 import shlex
 from pathlib import Path
-from typing import Any, Optional, TextIO, TypeVar, overload
+from typing import Any, TextIO, TypeVar, overload
 
 import yaml
 import yaml.nodes
@@ -293,7 +293,7 @@ def _process_environment(node: CfgNode, name: str) -> Environment:
     return result
 
 
-def _get_nullable_str(data: dict[str, Any], key: str) -> Optional[str]:
+def _get_nullable_str(data: dict[str, Any], key: str) -> str | None:
     # N.B. We can't use data.get() here, because that might return
     # None, leading to ambiguity between the key being absent or set
     # to a null value.
@@ -318,11 +318,11 @@ def _get_nullable_str(data: dict[str, Any], key: str) -> Optional[str]:
     return value
 
 
-def _get_entrypoint(data: CfgData) -> Optional[str]:
+def _get_entrypoint(data: CfgData) -> str | None:
     return _get_nullable_str(data, "entrypoint")
 
 
-def _get_docker_args(data: CfgData) -> Optional[list[str]]:
+def _get_docker_args(data: CfgData) -> list[str] | None:
     args_str = _get_nullable_str(data, "docker_args")
     if args_str is None:
         return None
@@ -339,16 +339,16 @@ def _get_typed_val(
     data: CfgData,
     key: str,
     type_: type[_T],
-    default: Optional[_T] = None,
-) -> Optional[_T]:
+    default: _T | None = None,
+) -> _T | None:
     v = data.get(key, default)
     if v is not None and not isinstance(v, type_):
         raise ConfigError(f"{key!r} must be a {type_.__name__}, not {type(v).__name__}")
     return v
 
 
-@overload  # When default is None, can return None (Optional).
-def _get_str(data: CfgData, key: str, default: None = None) -> Optional[str]:
+@overload  # When default is None, can return None.
+def _get_str(data: CfgData, key: str, default: None = None) -> str | None:
     ...
 
 
@@ -357,11 +357,11 @@ def _get_str(data: CfgData, key: str, default: str) -> str:
     ...
 
 
-def _get_str(data: CfgData, key: str, default: Optional[str] = None) -> Optional[str]:
+def _get_str(data: CfgData, key: str, default: str | None = None) -> str | None:
     return _get_typed_val(data, key, str, default)
 
 
-def _get_dict(data: CfgData, key: str) -> Optional[dict[str, Any]]:
+def _get_dict(data: CfgData, key: str) -> dict[str, Any] | None:
     return _get_typed_val(data, key, dict)
 
 
@@ -371,8 +371,8 @@ def _get_delimited_str_list(data: CfgData, key: str, sep: str) -> list[str]:
 
 
 def _get_volumes(
-    data: CfgData, scuba_root: Optional[Path]
-) -> Optional[dict[Path, ScubaVolume]]:
+    data: CfgData, scuba_root: Path | None
+) -> dict[Path, ScubaVolume] | None:
     voldata = _get_dict(data, "volumes")
     if voldata is None:
         return None
@@ -385,7 +385,7 @@ def _get_volumes(
     return vols
 
 
-def _absoluteify_path(in_str: str, base_dir: Optional[Path] = None) -> Path:
+def _absoluteify_path(in_str: str, base_dir: Path | None = None) -> Path:
     """Take a path string and make it absolute.
 
     Absolute paths are returned as-is.
@@ -431,8 +431,8 @@ def _absoluteify_path(in_str: str, base_dir: Optional[Path] = None) -> Path:
 @dataclasses.dataclass(frozen=True)
 class ScubaVolume:
     container_path: Path
-    host_path: Optional[Path] = None
-    volume_name: Optional[str] = None
+    host_path: Path | None = None
+    volume_name: str | None = None
     options: list[str] = dataclasses.field(default_factory=list)
 
     def __post_init__(self) -> None:
@@ -441,7 +441,7 @@ class ScubaVolume:
 
     @classmethod
     def from_dict(
-        cls, cpath: Path, node: CfgNode, scuba_root: Optional[Path]
+        cls, cpath: Path, node: CfgNode, scuba_root: Path | None
     ) -> ScubaVolume:
         # Treat a null node as an empty dict
         if node is None:
@@ -518,18 +518,16 @@ class ScubaVolume:
 class ScubaAlias:
     name: str
     script: list[str]
-    image: Optional[str] = None
-    entrypoint: Optional[str] = None
-    environment: Optional[dict[str, str]] = None
-    shell: Optional[str] = None
+    image: str | None = None
+    entrypoint: str | None = None
+    environment: dict[str, str] | None = None
+    shell: str | None = None
     as_root: bool = False
-    docker_args: Optional[list[str]] = None
-    volumes: Optional[dict[Path, ScubaVolume]] = None
+    docker_args: list[str] | None = None
+    volumes: dict[Path, ScubaVolume] | None = None
 
     @classmethod
-    def from_dict(
-        cls, name: str, node: CfgNode, scuba_root: Optional[Path]
-    ) -> ScubaAlias:
+    def from_dict(cls, name: str, node: CfgNode, scuba_root: Path | None) -> ScubaAlias:
         script = _process_script_node(node, name)
 
         if isinstance(node, dict):  # Rich alias
@@ -552,17 +550,17 @@ class ScubaAlias:
 
 class ScubaConfig:
     shell: str
-    entrypoint: Optional[str]
-    docker_args: Optional[list[str]]  # TODO: drop Optional?
-    volumes: Optional[dict[Path, ScubaVolume]]  # TODO: drop Optional? dict?
+    entrypoint: str | None
+    docker_args: list[str] | None  # TODO: drop None?
+    volumes: dict[Path, ScubaVolume] | None  # TODO: drop None? dict?
     aliases: dict[str, ScubaAlias]
     hooks: dict[str, list[str]]
     environment: Environment
 
     def __init__(
         self,
-        data: Optional[dict[str, CfgNode]] = None,
-        scuba_root: Optional[Path] = None,
+        data: dict[str, CfgNode] | None = None,
+        scuba_root: Path | None = None,
     ) -> None:
         if data is None:
             data = {}
@@ -596,7 +594,7 @@ class ScubaConfig:
         self.environment = _process_environment(data.get("environment"), "environment")
 
     def _load_aliases(
-        self, data: CfgData, scuba_root: Optional[Path]
+        self, data: CfgData, scuba_root: Path | None
     ) -> dict[str, ScubaAlias]:
         aliases = {}
         for name, node in data.get("aliases", {}).items():

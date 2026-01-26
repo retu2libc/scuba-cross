@@ -7,7 +7,7 @@ import shutil
 import unittest
 import logging
 from pathlib import Path
-from typing import Any, Callable, Sequence, TypeVar, Optional
+from typing import Any, Callable, Sequence, TypeVar
 from unittest import mock
 
 from scuba.config import ScubaVolume
@@ -86,7 +86,7 @@ class InTempDir:
         self,
         suffix: str = "",
         prefix: str = "tmp",
-        dir: Optional[PathStr] = None,
+        dir: PathStr | None = None,
         delete: bool = True,
     ):
         self.delete = delete

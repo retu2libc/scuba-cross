@@ -1,7 +1,7 @@
 from __future__ import annotations
 import subprocess
 import json
-from typing import Any, IO, Optional, Sequence
+from typing import Any, IO, Sequence
 from pathlib import Path
 
 # https://github.com/python/typeshed/blob/main/stdlib/subprocess.pyi
@@ -110,7 +110,7 @@ def get_images() -> Sequence[str]:
     return cp.stdout.splitlines()
 
 
-def _get_image_config(image: str, key: str) -> Optional[Sequence[str]]:
+def _get_image_config(image: str, key: str) -> Sequence[str] | None:
     info = docker_inspect_or_pull(image)
     try:
         result = info["Config"].get(key)
@@ -121,12 +121,12 @@ def _get_image_config(image: str, key: str) -> Optional[Sequence[str]]:
     return result
 
 
-def get_image_command(image: str) -> Optional[Sequence[str]]:
+def get_image_command(image: str) -> Sequence[str] | None:
     """Gets the default command for an image"""
     return _get_image_config(image, "Cmd")
 
 
-def get_image_entrypoint(image: str) -> Optional[Sequence[str]]:
+def get_image_entrypoint(image: str) -> Sequence[str] | None:
     """Gets the image entrypoint"""
     return _get_image_config(image, "Entrypoint")
 
@@ -134,7 +134,7 @@ def get_image_entrypoint(image: str) -> Optional[Sequence[str]]:
 def make_vol_opt(
     hostdir_or_volname: Path | str,
     contdir: Path,
-    options: Optional[Sequence[str]] = None,
+    options: Sequence[str] | None = None,
 ) -> str:
     """Generate a docker volume option"""
     if isinstance(hostdir_or_volname, Path):

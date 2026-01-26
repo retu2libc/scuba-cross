@@ -9,7 +9,7 @@ import tempfile
 from grp import getgrgid
 from pathlib import Path
 from pwd import getpwuid
-from typing import cast, Any, Iterable, Optional, Sequence
+from typing import cast, Any, Iterable, Sequence
 from typing import TextIO
 
 from .config import ScubaConfig, OverrideMixin
@@ -41,13 +41,13 @@ class ScubaDive:
         config: ScubaConfig,
         top_path: Path,
         top_rel: Path,
-        docker_args: Optional[list[str]] = None,
-        env: Optional[dict[str, str]] = None,
+        docker_args: list[str] | None = None,
+        env: dict[str, str] | None = None,
         as_root: bool = False,
         verbose: bool = False,
-        image_override: Optional[str] = None,
-        entrypoint: Optional[str] = None,
-        shell_override: Optional[str] = None,
+        image_override: str | None = None,
+        entrypoint: str | None = None,
+        shell_override: str | None = None,
         keep_tempfiles: bool = False,
     ):
         self.as_root = as_root
@@ -60,10 +60,10 @@ class ScubaDive:
         self.volumes = []
         self.options = []
         self.docker_args = docker_args or []
-        self.workdir: Optional[Path] = None
+        self.workdir: Path | None = None
 
-        self.__scubadir_hostpath: Optional[str] = None
-        self.__scubadir_contpath: Optional[str] = None
+        self.__scubadir_hostpath: str | None = None
+        self.__scubadir_contpath: str | None = None
         self.config = config
 
         # Mount scuba root directory at the same path in the container...
@@ -143,7 +143,7 @@ class ScubaDive:
         self,
         hostpath: Path | str,
         contpath: Path | str,
-        options: Optional[list[str]] = None,
+        options: list[str] | None = None,
     ) -> None:
         """Add a volume (bind-mount) to the docker run invocation"""
         hostpath = Path(hostpath)
@@ -379,8 +379,8 @@ class ScubaContext:
     volumes: dict[Path, ScubaVolume]
     shell: str
     docker_args: list[str]
-    script: Optional[list[str]] = None  # TODO: drop Optional?
-    entrypoint: Optional[str] = None
+    script: list[str] | None = None  # TODO: drop None type?
+    entrypoint: str | None = None
     as_root: bool = False
 
     @classmethod
@@ -388,8 +388,8 @@ class ScubaContext:
         cls,
         cfg: ScubaConfig,
         command: Sequence[str],
-        image_override: Optional[str] = None,
-        shell_override: Optional[str] = None,
+        image_override: str | None = None,
+        shell_override: str | None = None,
     ) -> ScubaContext:
         """Processes a user command using aliases
 
