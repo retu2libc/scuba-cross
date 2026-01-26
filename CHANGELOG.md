@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [2.14.2] - 2026-01-25
 ### Fixed
 - Fixed `!from_yaml` not handling multi-document YAML files (#277) (@brxnnan)
 
@@ -299,7 +299,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 First versioned release
 
 
-[Unreleased]: https://github.com/JonathonReinhart/scuba/compare/v2.14.1...HEAD
+[Unreleased]: https://github.com/JonathonReinhart/scuba/compare/v2.14.2...HEAD
+[2.14.2]: https://github.com/JonathonReinhart/scuba/compare/v2.14.1...v2.14.2
 [2.14.1]: https://github.com/JonathonReinhart/scuba/compare/v2.14.0...v2.14.1
 [2.14.0]: https://github.com/JonathonReinhart/scuba/compare/v2.13.1...v2.14.0
 [2.13.1]: https://github.com/JonathonReinhart/scuba/compare/v2.13.0...v2.13.1
