@@ -155,8 +155,7 @@ class TestMainBasic(MainTest):
 
     def test_multiline_alias_no_args_error(self) -> None:
         """Verify config errors from passing arguments to multi-line alias are caught"""
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             aliases:
               multi:
@@ -164,8 +163,7 @@ class TestMainBasic(MainTest):
                   - echo multi
                   - echo line
                   - echo alias
-            """
-        )
+            """)
 
         # ConfigError -> exit(128)
         run_scuba(["multi", "with", "args"], expect_return=128)
@@ -352,16 +350,14 @@ class TestMainUser(MainTest):
 
     def test_user_root_alias(self) -> None:
         """Verify that aliases can set whether the container is run as root"""
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             aliases:
               root_test:
                 root: true
                 script:
                   - echo $(id -u) $(id -un) $(id -g) $(id -gn)
-            """
-        )
+            """)
 
         out, _ = run_scuba(["root_test"])
         uid, username, gid, groupname = out.split()
@@ -373,16 +369,14 @@ class TestMainUser(MainTest):
 
         # No one should ever specify 'root: false' in an alias, but Scuba should behave
         # correctly if they do
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             aliases:
               no_root_test:
                 root: false
                 script:
                   - echo $(id -u) $(id -un) $(id -g) $(id -gn)
-            """
-        )
+            """)
 
         out, _ = run_scuba(["no_root_test"])
         uid, username, gid, groupname = out.split()
@@ -461,12 +455,10 @@ class TestMainDockerArgs(MainTest):
             expfiles.add(name)
             return f'-v "{dummy.absolute()}:{tgtdir}/{name}"\n'
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             docker_args: {mount_dummy('one')}
-            """
-        )
+            """)
 
         args = [
             "-d=" + mount_dummy("two"),
@@ -489,23 +481,20 @@ class TestMainAliasScripts(MainTest):
         test_dir.mkdir()
         test_file.write_text(test_string)
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             aliases:
               alias1:
                 script:
                   - cd {test_dir} && cat {test_file.name}
-            """
-        )
+            """)
 
         out, _ = run_scuba(["alias1"])
         assert_str_equalish(test_string, out)
 
     def test_nested_sript(self) -> None:
         """Verify nested scripts works"""
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             aliases:
               foo:
@@ -516,8 +505,7 @@ class TestMainAliasScripts(MainTest):
                     - echo "nested"
                     - - echo "kinda"
                       - echo "crazy"
-            """
-        )
+            """)
 
         test_str = "This list is nested kinda crazy"
         out, _ = run_scuba(["foo"])
@@ -536,31 +524,27 @@ class TestMainEntrypoint(MainTest):
 
     def test_image_entrypoint_multiline(self) -> None:
         """Verify entrypoints are handled correctly with multi-line scripts"""
-        SCUBA_YML.write_text(
-            """
+        SCUBA_YML.write_text("""
             image: scuba/entrypoint-test
             aliases:
               testalias:
                 script:
                   - cat entrypoint_works.txt
                   - echo $ENTRYPOINT_WORKS
-            """
-        )
+            """)
 
         out, _ = run_scuba(["testalias"])
         assert_str_equalish("\n".join(["success"] * 2), out)
 
     def test_entrypoint_override(self) -> None:
         """Verify --entrypoint override works"""
-        SCUBA_YML.write_text(
-            """
+        SCUBA_YML.write_text("""
             image: scuba/entrypoint-test
             aliases:
               testalias:
                 script:
                   - echo $ENTRYPOINT_WORKS
-            """
-        )
+            """)
 
         test_script = Path("new.sh")
         test_str = "This is output from the overridden entrypoint"
@@ -583,15 +567,13 @@ class TestMainEntrypoint(MainTest):
 
     def test_entrypoint_override_none(self) -> None:
         """Verify --entrypoint override (to nothing) works"""
-        SCUBA_YML.write_text(
-            """
+        SCUBA_YML.write_text("""
             image: scuba/entrypoint-test
             aliases:
               testalias:
                 script:
                   - echo $ENTRYPOINT_WORKS
-            """
-        )
+            """)
 
         args = [
             "--entrypoint",
@@ -617,28 +599,24 @@ class TestMainEntrypoint(MainTest):
             """,
         )
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: scuba/entrypoint-test
             entrypoint: "./{test_script}"
-            """
-        )
+            """)
 
         out, _ = run_scuba(["true"])
         assert_str_equalish(test_str, out)
 
     def test_yaml_entrypoint_override_none(self) -> None:
         """Verify "none" entrypoint in .scuba.yml works"""
-        SCUBA_YML.write_text(
-            """
+        SCUBA_YML.write_text("""
             image: scuba/entrypoint-test
             entrypoint:
             aliases:
               testalias:
                 script:
                   - echo $ENTRYPOINT_WORKS
-            """
-        )
+            """)
 
         args = [
             "testalias",
@@ -714,13 +692,11 @@ class TestMainHooks(MainTest):
         cmd: str,
         expect_return: int = 0,
     ) -> ScubaResult:
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             hooks:
               {hookname}: {hookcmd}
-            """
-        )
+            """)
 
         args = ["/bin/sh", "-c", cmd]
         return run_scuba(args, expect_return=expect_return)
@@ -788,8 +764,7 @@ class TestMainEnvironment(MainTest):
 
     def test_env_var_sources(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify scuba handles all possible environment variable sources"""
-        SCUBA_YML.write_text(
-            rf"""
+        SCUBA_YML.write_text(rf"""
             image: {DOCKER_IMAGE}
             environment:
               FOO: Top-level
@@ -809,8 +784,7 @@ class TestMainEnvironment(MainTest):
                   FOO: Overridden
                   MORE: Hello world
                   EXTERNAL_3:
-            """
-        )
+            """)
 
         args = [
             "-e",
@@ -852,15 +826,13 @@ class TestMainEnvironment(MainTest):
 class TestMainShellOverride(MainTest):
     def test_use_top_level_shell_override(self) -> None:
         """Verify that the shell can be overriden at the top level"""
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             shell: /bin/bash
             aliases:
               check_shell:
                 script: readlink -f /proc/$$/exe
-            """
-        )
+            """)
 
         out, _ = run_scuba(["check_shell"])
         # If we failed to override, the shebang would be #!/bin/sh
@@ -868,8 +840,7 @@ class TestMainShellOverride(MainTest):
 
     def test_alias_level_shell_override(self) -> None:
         """Verify that the shell can be overriden at the alias level without affecting other aliases"""
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             aliases:
               shell_override:
@@ -877,8 +848,7 @@ class TestMainShellOverride(MainTest):
                 script: readlink -f /proc/$$/exe
               default_shell:
                 script: readlink -f /proc/$$/exe
-            """
-        )
+            """)
         out, _ = run_scuba(["shell_override"])
         assert_str_equalish("/bin/bash", out)
 
@@ -889,14 +859,12 @@ class TestMainShellOverride(MainTest):
 
     def test_cli_shell_override(self) -> None:
         """Verify that the shell can be overriden by the CLI"""
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             aliases:
               default_shell:
                 script: readlink -f /proc/$$/exe
-            """
-        )
+            """)
         out, _ = run_scuba(["--shell", "/bin/bash", "default_shell"])
         assert_str_equalish("/bin/bash", out)
 
@@ -906,41 +874,35 @@ class TestMainShellOverride(MainTest):
         # Top-level SCUBA_YML shell << alias-level SCUBA_YML shell << CLI-specified shell
 
         # Test top-level << alias-level
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             shell: /bin/this_does_not_exist
             aliases:
               shell_override:
                 shell: /bin/bash
                 script: readlink -f /proc/$$/exe
-            """
-        )
+            """)
         out, _ = run_scuba(["shell_override"])
         assert_str_equalish("/bin/bash", out)
 
         # Test alias-level << CLI
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             aliases:
               shell_overridden:
                 shell: /bin/this_is_not_a_real_shell
                 script: readlink -f /proc/$$/exe
-            """
-        )
+            """)
         out, _ = run_scuba(["--shell", "/bin/bash", "shell_overridden"])
         assert_str_equalish("/bin/bash", out)
 
         # Test top-level << CLI
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             shell: /bin/this_is_not_a_real_shell
             aliases:
               shell_check: readlink -f /proc/$$/exe
-            """
-        )
+            """)
         out, _ = run_scuba(["--shell", "/bin/bash", "shell_check"])
         assert_str_equalish("/bin/bash", out)
 
@@ -958,8 +920,7 @@ class TestMainVolumes(MainTest):
         aliasdata.mkdir()
         (aliasdata / "thing").write_text("from the alias\n")
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             volumes:
               /topdata: {topdata.absolute()}
@@ -968,8 +929,7 @@ class TestMainVolumes(MainTest):
                 volumes:
                   /aliasdata: {aliasdata.absolute()}
                 script: "cat /topdata/thing /aliasdata/thing"
-            """
-        )
+            """)
 
         out, _ = run_scuba(["doit"])
         assert out.splitlines() == ["from the top", "from the alias"]
@@ -986,8 +946,7 @@ class TestMainVolumes(MainTest):
         aliasdata.mkdir()
         (aliasdata / "thing").write_text("from the alias\n")
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             volumes:
               /data: {topdata.absolute()}
@@ -996,8 +955,7 @@ class TestMainVolumes(MainTest):
                 volumes:
                   /data: {aliasdata.absolute()}
                 script: "cat /data/thing"
-            """
-        )
+            """)
 
         # Run a non-alias command
         out, _ = run_scuba(["cat", "/data/thing"])
@@ -1013,13 +971,11 @@ class TestMainVolumes(MainTest):
         userdir = Path("./user")
         testfile = userdir / "test.txt"
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             volumes:
               /userdir: {userdir.absolute()}
-            """
-        )
+            """)
 
         run_scuba(["touch", "/userdir/test.txt"])
 
@@ -1038,8 +994,7 @@ class TestMainVolumes(MainTest):
 
         rootdir.mkdir()
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             volumes:
               /userdir: {userdir.absolute()}
@@ -1047,8 +1002,7 @@ class TestMainVolumes(MainTest):
                doit:
                   root: true
                   script: "touch /userdir/test.txt"
-            """
-        )
+            """)
 
         try:
             # Prevent current user from creating directory
@@ -1074,13 +1028,11 @@ class TestMainVolumes(MainTest):
         # rootdir is not a dir, it's a file
         rootdir.write_text("lied about the dir")
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             volumes:
               /userdir: {userdir.absolute()}
-            """
-        )
+            """)
 
         run_scuba(["touch", "/userdir/test.txt"], expect_return=128)
 
@@ -1094,13 +1046,11 @@ class TestMainVolumes(MainTest):
         test_message = "Relative paths work"
         (userdir / "test.txt").write_text(test_message)
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             volumes:
               /userdir: ./{userdir}
-            """
-        )
+            """)
 
         # Invoke scuba from a different subdir, for good measure.
         otherdir = Path("way/down/here")
@@ -1135,13 +1085,11 @@ class TestMainVolumes(MainTest):
 
         # Change to the project subdir and write the .scuba.yml file there.
         os.chdir(projdir)
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             volumes:
               /userdir: ../../../{userdir}
-            """
-        )
+            """)
 
         out, _ = run_scuba(["cat", "/userdir/test.txt"])
         assert out == test_message
@@ -1172,15 +1120,13 @@ class TestMainNamedVolumes(MainTest):
         test_path = vol_path / "test.txt"
         test_str = "it works!"
 
-        SCUBA_YML.write_text(
-            f"""
+        SCUBA_YML.write_text(f"""
             image: {DOCKER_IMAGE}
             hooks:
               root: chmod 777 {vol_path}
             volumes:
               {vol_path}: {self.VOLUME_NAME}
-            """
-        )
+            """)
 
         # Inoke scuba once: Write a file to the named volume
         run_scuba(["/bin/sh", "-c", f"echo {test_str} > {test_path}"])

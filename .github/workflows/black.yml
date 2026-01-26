@@ -13,4 +13,4 @@ jobs:
         with:
           options: "--check --color --diff"
           src: "."
-          version: "~= 25.0"  # Must match requirements.txt
+          version: "~= 26.0"  # Must match requirements.txt
