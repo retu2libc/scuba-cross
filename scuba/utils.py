@@ -1,7 +1,7 @@
 import os
 from shlex import quote as shell_quote
 import string
-from typing import Iterable, TextIO, Tuple
+from typing import Iterable, TextIO
 
 
 def shell_quote_cmd(cmdlist: Iterable[str]) -> str:
@@ -39,7 +39,7 @@ def format_cmdline(args: Iterable[str], maxwidth: int = 80) -> str:
     return " \\\n".join(lines())
 
 
-def parse_env_var(s: str) -> Tuple[str, str]:
+def parse_env_var(s: str) -> tuple[str, str]:
     """Parse an environment variable string
 
     Returns a key-value tuple
