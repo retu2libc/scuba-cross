@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Removed
+- Dropped support for Python 3.9 (#279)
+
+
 ## [2.14.2] - 2026-01-25
 ### Fixed
 - Fixed `!from_yaml` not handling multi-document YAML files (#277) (@brxnnan)
