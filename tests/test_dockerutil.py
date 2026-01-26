@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 import subprocess
-from typing import Optional, Sequence
+from typing import Sequence
 from unittest import mock
 
 from .const import ALT_DOCKER_IMAGE, DOCKER_IMAGE
@@ -12,7 +12,7 @@ import scuba.dockerutil as uut
 def _mock_subprocess_run(  # type: ignore[no-untyped-def]
     stdout: str,
     returncode: int = 0,
-    expected_args: Optional[Sequence[str]] = None,
+    expected_args: Sequence[str] | None = None,
 ):  # -> mock._patch[mock.MagicMock]:
     def mocked_run(args, **kwargs):  # type: ignore[no-untyped-def]
         assert expected_args is None or args == expected_args

@@ -10,7 +10,7 @@ import subprocess
 import sys
 from tempfile import TemporaryFile, NamedTemporaryFile
 from textwrap import dedent
-from typing import cast, IO, Optional, Sequence, TextIO
+from typing import cast, IO, Sequence, TextIO, TypeAlias
 from unittest import mock
 import warnings
 
@@ -28,7 +28,7 @@ from .utils import (
     PseudoTTY,
 )
 
-ScubaResult = tuple[str, str]
+ScubaResult: TypeAlias = tuple[str, str]
 
 
 SCUBA_YML = Path(".scuba.yml")
@@ -45,7 +45,7 @@ def run_scuba(
     *,
     expect_return: int = 0,
     mock_isatty: bool = False,
-    stdin: Optional[IO[str]] = None,
+    stdin: IO[str] | None = None,
 ) -> ScubaResult:
     """Run scuba, checking its return value
 
@@ -137,7 +137,7 @@ class TestMainBasic(MainTest):
         """Verify scuba handles a get_image_command error"""
         SCUBA_YML.write_text("image: {DOCKER_IMAGE}")
 
-        def mocked_gic(image: str) -> Optional[Sequence[str]]:
+        def mocked_gic(image: str) -> Sequence[str] | None:
             raise scuba.dockerutil.DockerError("mock error")
 
         # http://alexmarandon.com/articles/python_mock_gotchas/#patching-in-the-wrong-place

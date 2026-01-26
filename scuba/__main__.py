@@ -9,7 +9,7 @@ import shlex
 import itertools
 import argparse
 from pathlib import Path
-from typing import Any, Optional, Sequence
+from typing import Any, Sequence
 
 try:
     import argcomplete  # type: ignore
@@ -30,7 +30,7 @@ def appmsg(msg: str) -> None:
     print("scuba: " + msg, file=sys.stderr)
 
 
-def parse_scuba_args(argv: Optional[Sequence[str]]) -> argparse.Namespace:
+def parse_scuba_args(argv: Sequence[str] | None) -> argparse.Namespace:
     def _list_images_completer(**kwargs: Any) -> Sequence[str]:
         return dockerutil.get_images()
 
@@ -177,7 +177,7 @@ def run_scuba(scuba_args: argparse.Namespace) -> int:
         )
 
 
-def main(argv: Optional[Sequence[str]] = None) -> None:
+def main(argv: Sequence[str] | None = None) -> None:
     scuba_args = parse_scuba_args(argv)
 
     try:

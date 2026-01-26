@@ -9,8 +9,7 @@ import tempfile
 from grp import getgrgid
 from pathlib import Path
 from pwd import getpwuid
-from typing import cast, Any, Iterable, Optional, Sequence, Union
-from typing import TextIO
+from typing import cast, Any, Iterable, Sequence, TextIO, TypeAlias
 
 from .config import ScubaConfig, OverrideMixin
 from .config import ConfigError, ScubaVolume
@@ -19,7 +18,7 @@ from .dockerutil import get_image_entrypoint
 from .dockerutil import make_vol_opt
 from .utils import shell_quote_cmd, flatten_list, get_umask, writeln
 
-VolumeTuple = tuple[Path, Path, list[str]]
+VolumeTuple: TypeAlias = tuple[Path, Path, list[str]]
 
 
 class ScubaError(Exception):
@@ -41,13 +40,13 @@ class ScubaDive:
         config: ScubaConfig,
         top_path: Path,
         top_rel: Path,
-        docker_args: Optional[list[str]] = None,
-        env: Optional[dict[str, str]] = None,
+        docker_args: list[str] | None = None,
+        env: dict[str, str] | None = None,
         as_root: bool = False,
         verbose: bool = False,
-        image_override: Optional[str] = None,
-        entrypoint: Optional[str] = None,
-        shell_override: Optional[str] = None,
+        image_override: str | None = None,
+        entrypoint: str | None = None,
+        shell_override: str | None = None,
         keep_tempfiles: bool = False,
     ):
         self.as_root = as_root
@@ -60,10 +59,10 @@ class ScubaDive:
         self.volumes = []
         self.options = []
         self.docker_args = docker_args or []
-        self.workdir: Optional[Path] = None
+        self.workdir: Path | None = None
 
-        self.__scubadir_hostpath: Optional[str] = None
-        self.__scubadir_contpath: Optional[str] = None
+        self.__scubadir_hostpath: str | None = None
+        self.__scubadir_contpath: str | None = None
         self.config = config
 
         # Mount scuba root directory at the same path in the container...
@@ -133,7 +132,7 @@ class ScubaDive:
     def is_remote_docker(self) -> bool:
         return "DOCKER_HOST" in os.environ
 
-    def add_env(self, name: str, val: Union[str, int]) -> None:
+    def add_env(self, name: str, val: str | int) -> None:
         """Add an environment variable to the docker run invocation"""
         if name in self.env_vars:
             raise KeyError(name)
@@ -141,9 +140,9 @@ class ScubaDive:
 
     def add_volume(
         self,
-        hostpath: Union[Path, str],
-        contpath: Union[Path, str],
-        options: Optional[list[str]] = None,
+        hostpath: Path | str,
+        contpath: Path | str,
+        options: list[str] | None = None,
     ) -> None:
         """Add a volume (bind-mount) to the docker run invocation"""
         hostpath = Path(hostpath)
@@ -379,8 +378,8 @@ class ScubaContext:
     volumes: dict[Path, ScubaVolume]
     shell: str
     docker_args: list[str]
-    script: Optional[list[str]] = None  # TODO: drop Optional?
-    entrypoint: Optional[str] = None
+    script: list[str] | None = None  # TODO: drop None type?
+    entrypoint: str | None = None
     as_root: bool = False
 
     @classmethod
@@ -388,8 +387,8 @@ class ScubaContext:
         cls,
         cfg: ScubaConfig,
         command: Sequence[str],
-        image_override: Optional[str] = None,
-        shell_override: Optional[str] = None,
+        image_override: str | None = None,
+        shell_override: str | None = None,
     ) -> ScubaContext:
         """Processes a user command using aliases
 
