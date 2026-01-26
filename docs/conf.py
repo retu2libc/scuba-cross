@@ -16,7 +16,6 @@ doc_dir = Path(".").absolute()
 sys.path.append(str(doc_dir.parent))
 import scuba.version
 
-
 # -- Project information -----------------------------------------------------
 
 project = "Scuba"
