@@ -5,7 +5,7 @@ import os
 import re
 import shlex
 from pathlib import Path
-from typing import Any, TextIO, TypeVar, overload
+from typing import Any, TextIO, TypeAlias, TypeVar, overload
 
 import yaml
 import yaml.nodes
@@ -14,9 +14,9 @@ from . import utils
 from .constants import DEFAULT_SHELL, SCUBA_YML
 from .dockerutil import make_vol_opt
 
-CfgNode = Any
-CfgData = dict[str, CfgNode]
-Environment = dict[str, str]
+CfgNode: TypeAlias = Any
+CfgData: TypeAlias = dict[str, CfgNode]
+Environment: TypeAlias = dict[str, str]
 _T = TypeVar("_T")
 
 VOLUME_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.-]+$")

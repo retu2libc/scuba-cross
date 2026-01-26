@@ -9,8 +9,7 @@ import tempfile
 from grp import getgrgid
 from pathlib import Path
 from pwd import getpwuid
-from typing import cast, Any, Iterable, Sequence
-from typing import TextIO
+from typing import cast, Any, Iterable, Sequence, TextIO, TypeAlias
 
 from .config import ScubaConfig, OverrideMixin
 from .config import ConfigError, ScubaVolume
@@ -19,7 +18,7 @@ from .dockerutil import get_image_entrypoint
 from .dockerutil import make_vol_opt
 from .utils import shell_quote_cmd, flatten_list, get_umask, writeln
 
-VolumeTuple = tuple[Path, Path, list[str]]
+VolumeTuple: TypeAlias = tuple[Path, Path, list[str]]
 
 
 class ScubaError(Exception):

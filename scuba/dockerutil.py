@@ -1,12 +1,12 @@
 from __future__ import annotations
 import subprocess
 import json
-from typing import Any, IO, Sequence
+from typing import Any, IO, Sequence, TypeAlias
 from pathlib import Path
 
 # https://github.com/python/typeshed/blob/main/stdlib/subprocess.pyi
-_CMD = str | bytes | Sequence[str | bytes]
-_FILE = None | int | IO[Any]
+_CMD: TypeAlias = str | bytes | Sequence[str | bytes]
+_FILE: TypeAlias = None | int | IO[Any]
 
 
 class DockerError(Exception):

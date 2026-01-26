@@ -10,7 +10,7 @@ import subprocess
 import sys
 from tempfile import TemporaryFile, NamedTemporaryFile
 from textwrap import dedent
-from typing import cast, IO, Sequence, TextIO
+from typing import cast, IO, Sequence, TextIO, TypeAlias
 from unittest import mock
 import warnings
 
@@ -28,7 +28,7 @@ from .utils import (
     PseudoTTY,
 )
 
-ScubaResult = tuple[str, str]
+ScubaResult: TypeAlias = tuple[str, str]
 
 
 SCUBA_YML = Path(".scuba.yml")
