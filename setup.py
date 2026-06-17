@@ -3,6 +3,7 @@ from setuptools import setup, Command
 from distutils.command.build import build
 from setuptools.command.develop import develop
 from subprocess import check_call
+from wheel.bdist_wheel import bdist_wheel
 import os
 
 ################################################################################
@@ -34,6 +35,15 @@ class develop(develop):
     def run(self):
         self.run_command("build_scubainit")
         super().run()
+
+
+class bdist_wheel(bdist_wheel):
+    def finalize_options(self):
+        super().finalize_options()
+        self.root_is_pure = False
+        plat_name = os.getenv("SCUBA_WHEEL_PLAT_NAME")
+        if plat_name:
+            self.plat_name = plat_name
 
 
 ################################################################################
@@ -77,5 +87,6 @@ setup(
         "build_scubainit": build_scubainit,
         "build": build_hook,
         "develop": develop,
+        "bdist_wheel": bdist_wheel,
     },
 )

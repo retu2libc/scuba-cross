@@ -7,6 +7,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - scubainit-target: x86_64-unknown-linux-musl
+            wheel-plat-name: linux_x86_64
+          - scubainit-target: aarch64-unknown-linux-musl
+            wheel-plat-name: linux_aarch64
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -30,10 +37,12 @@ jobs:
     - name: Build
       env:
         CC: /usr/bin/musl-gcc
-      run: python -m build
+        SCUBAINIT_TARGET: ${{ matrix.scubainit-target }}
+        SCUBA_WHEEL_PLAT_NAME: ${{ matrix.wheel-plat-name }}
+      run: python -m build --wheel
 
     - name: Publish
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: twine upload dist/*
+      run: twine upload dist/*.whl
